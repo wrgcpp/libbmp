@@ -5,9 +5,13 @@
 #include <string>
 #include <fstream>
 #include <cstring>
+#include <sstream>
+#include <iomanip>
+#include <list>
 #include "def.h"
+#include "bmperror.h"
 
-#define DEBUG(s) (std::cout << s << std::endl);
+#define debug(s) (std::cout << s << std::endl);
 
 class Bitmap { 
     // header sizes
@@ -17,19 +21,29 @@ class Bitmap {
     // bmp data
 	FileHeader file_header;
 	BitmapHeader bitmap_header;
-    RGBQuad *palette;
 
     // file name
     std::string fname;
+
+    // file size
+    unsigned int fsize;
+
+    // errors list
+    std::list<BMPError> errors;
 
 public:
 	Bitmap();
     Bitmap(char const *fname);
     ~Bitmap();
 
+    // handle functions
     void setFilename(char const *fname);
-    void read();
-    void read(char const *fname);
+    bool read();
+    bool read(char const *fname);
+
+    // error handle functions
+    bool hasErrors();
+    BMPError getLastError();
 
 };
 

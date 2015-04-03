@@ -16,7 +16,7 @@ struct BitmapHeader {
 	uint32_t img_width;
 	uint32_t img_height;
 	uint16_t plane_count;
-	uint16_t bit_per_pixel;
+    uint16_t bit_count;
 	uint32_t compress_type;
 	uint32_t compressed_size;
 	uint32_t horizontal_resolution;

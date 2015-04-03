@@ -2,20 +2,21 @@
 
 Bitmap::Bitmap()
 {
-    this->palette = NULL;
+    //this->palette = NULL;
+    this->fsize = 0;
 }
 
 Bitmap::Bitmap(char const *fname)
 {
     this->fname = std::string(fname);
-    this->palette = NULL;
-
+    //this->palette = NULL;
+    this->fsize = 0;
 }
 
 Bitmap::~Bitmap()
 {
-    delete [] this->palette;
-    this->palette = NULL;
+    //delete [] this->palette;
+    //this->palette = NULL;
 }
 
 void Bitmap::setFilename(const char *fname)
@@ -23,74 +24,90 @@ void Bitmap::setFilename(const char *fname)
     this->fname = std::string(fname);
 }
 
-void Bitmap::read()
+bool Bitmap::read()
 {
-    if(!this->fname.length()){
-        //TODO: throw error: no file name set
-        return;
+    if(!this->fname.length()) {
+        this->errors.push_back(BMPError("no file name specified"));
+        return false;
     }
 
     // open file
     std::ifstream file;
     file.open(fname, std::ios::binary);
     if(!file.is_open()) {
-        //TODO: throw error
-        std::cout << "error opening file" << std::endl;
-        return;
+        this->errors.push_back(BMPError("error opening file"));
+        return false;
     }
 
-    // read both headers
+    // calculate file size
+    file.seekg(0, file.end);
+    this->fsize = file.tellg();
+    file.seekg(0, file.beg);
+
+    bool success = true;
+
+    // read file header
     file.read((char *)&this->file_header, sizeof(this->file_header));
     if(file.gcount() != this->file_header_size) {
-        //TODO: throw error (wrong file header size)
-        DEBUG("wrong file header size");
-        return;
+        this->errors.push_back(BMPError("wrong file header size"));
+        success = false;
     }
 
+    // read bmp header
     file.read((char *)&this->bitmap_header, sizeof(this->bitmap_header));
     if(file.gcount() != this->bmp_header_size) {
-        //TODO: throw error (wrong bitmap header size)
-        DEBUG("wrong bitmap header size");
-        DEBUG(file.gcount());
-        return;
+        this->errors.push_back(BMPError("wrong bitmap header size"));
+        success = false;
     }
 
-    // check that this is a BMP file
-    //int t = 0;
-    //t += memcmp(this->file_header.bm, "BM", 2);
-    if(memcmp(this->file_header.bm, "BM", 2)){
-        //TODO: throw error (not BMP file)
-        DEBUG("not BMP file");
-        return;
+    // check that this is BMP file
+    if(memcmp(this->file_header.bm, "BM", 2)) {
+        this->errors.push_back(BMPError("not a BMP file"));
+        success = false;
     }
 
-    DEBUG("BMP file");
-    DEBUG("Image offset: " << this->file_header.offset);
-
-    unsigned int palette_size = this->file_header.offset - 54;
-    if(palette_size) {
-        // check palette size
-        if(palette_size % 4) {
-            // TODO: throw error (wrong palette size or wrong offset)
-            return;
-        }
-        // allocate memory for palette
-        this->palette = new RGBQuad[palette_size / sizeof(RGBQuad)];
-
-        // read palette
-        DEBUG("reading palette (" << palette_size << " bytes)");
-
-        for(int i = 0; i < palette_size / 4; i++) {
-            file.read((char *)&this->palette[i], sizeof(RGBQuad));
-        }
+    // check that this is 24 bit image
+    // files with another color depth are unsupported
+    if(this->bitmap_header.bit_count != 24) {
+        std::string errmsg = "unsupported color depth - " +
+                std::to_string(this->bitmap_header.bit_count) +
+                "bit";
+        std::string errdesc = "only 24 bit images are supported";
+        this->errors.push_back(BMPError(errmsg, errdesc));
+        success = false;
     }
 
-    file.close();
+    // check that image is not compressed
+    // compressed images are unsupported
+    if(this->bitmap_header.compress_type) {
+        this->errors.push_back("compressed images are unsupported");
+        success = false;
+    }
+
+    // check that file size coincides
+    if(this->file_header.size != this->fsize) {
+        this->errors.push_back("file size mismatch");
+        success = false;
+    }
+
+    return success;
 }
 
-void Bitmap::read(const char *fname)
+bool Bitmap::read(const char *fname)
 {
     this->fname = std::string(fname);
-    this->read();
+    return this->read();
+}
+
+bool Bitmap::hasErrors()
+{
+    return !this->errors.empty();
+}
+
+BMPError Bitmap::getLastError()
+{
+    BMPError e = this->errors.back();
+    this->errors.pop_back();
+    return e;
 }
 
