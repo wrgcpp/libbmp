@@ -8,6 +8,8 @@
 #include <sstream>
 #include <iomanip>
 #include <list>
+#include <vector>
+#include <exception>
 #include "def.h"
 #include "bmperror.h"
 
@@ -21,6 +23,8 @@ class Bitmap {
     // bmp data
 	FileHeader file_header;
 	BitmapHeader bitmap_header;
+    RGB **bitmap;
+    //std::vector<std::vector<RGB> > bitmap;
 
     // file name
     std::string fname;
@@ -31,6 +35,8 @@ class Bitmap {
     // errors list
     std::list<BMPError> errors;
 
+    bool swapRows(unsigned int num1, unsigned int num2);
+
 public:
 	Bitmap();
     Bitmap(char const *fname);
@@ -40,6 +46,7 @@ public:
     void setFilename(char const *fname);
     bool read();
     bool read(char const *fname);
+    void print();
 
     // error handle functions
     bool hasErrors();

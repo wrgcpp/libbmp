@@ -25,11 +25,10 @@ struct BitmapHeader {
 	uint32_t important_colors_count;
 } __attribute__((packed));
 
-struct RGBQuad {
+struct RGB {
 	uint8_t blue;
 	uint8_t green;
 	uint8_t red;
-	uint8_t unused;
 } __attribute__((packed));
 
 #endif // DEF_H

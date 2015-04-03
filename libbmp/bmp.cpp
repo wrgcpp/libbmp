@@ -1,22 +1,44 @@
 #include "bmp.h"
 
+bool Bitmap::swapRows(unsigned int num1, unsigned int num2)
+{
+    if(!this->bitmap) {
+        this->errors.push_back("image not loaded");
+        return false;
+    }
+
+    if(num1 > this->bitmap_header.img_height ||
+       num2 > this->bitmap_header.img_height) {
+        this->errors.push_back("wrong index");
+        return false;
+    }
+
+    if(num1 == num2) {
+        return true;
+    }
+
+
+
+    return true;
+}
+
 Bitmap::Bitmap()
 {
-    //this->palette = NULL;
+    this->bitmap = NULL;
     this->fsize = 0;
 }
 
 Bitmap::Bitmap(char const *fname)
 {
     this->fname = std::string(fname);
-    //this->palette = NULL;
+    this->bitmap = NULL;
     this->fsize = 0;
 }
 
 Bitmap::~Bitmap()
 {
-    //delete [] this->palette;
-    //this->palette = NULL;
+    delete [] this->bitmap;
+    this->bitmap = NULL;
 }
 
 void Bitmap::setFilename(const char *fname)
@@ -102,10 +124,58 @@ bool Bitmap::read()
     if(success) {
         //debug(this->bitmap_header.img_width);
         //debug(this->bitmap_header.img_width % 4);
-        unsigned int align = this->bitmap_header.img_width % 4;
-        unsigned int aligned_width = this->bitmap_header.img_width *
-                                     sizeof(RGBQuad) + align;
-        debug(aligned_width);
+        unsigned int align_bytes = this->bitmap_header.img_width % 4;
+        unsigned int bitmap_size = this->bitmap_header.img_width *
+                                   this->bitmap_header.img_height;
+
+        // allocate memory fo bitmap
+        try {
+            // allocate rows
+            this->bitmap = new RGB* [this->bitmap_header.img_height];
+            for(int i = 0; i < this->bitmap_header.img_height; i++) {
+                this->bitmap[i] = NULL;
+            }
+
+            // allocate columns
+            for(int i = 0; i <this->bitmap_header.img_height; i++) {
+                this->bitmap[i] = new RGB[this->bitmap_header.img_width];
+            }
+        }
+        catch(std::bad_alloc &e) {
+            // allocation fails, free memory
+
+            for(int i = 0; i < this->bitmap_header.img_height; i++) {
+                delete [] this->bitmap[i];
+                this->bitmap[i] = NULL;
+            }
+            delete [] this->bitmap;
+            this->bitmap = NULL;
+
+            BMPError error("can\'t allocate memory for bitmap");
+            error.setDescription("bitmap size is " + std::to_string(bitmap_size) +
+                             " bytes");
+            this->errors.push_back(error);
+            return false;
+        }
+
+        // read bitmap from file
+        for(int i = 0; i < this->bitmap_header.img_height; i++) {
+            // read each row
+            unsigned int file_pos = file.tellg();
+            for(int j = 0; j < this->bitmap_header.img_width; j++) {
+                // read pixel of current row
+                file.read((char *)&this->bitmap[i][j], sizeof(RGB));
+            }
+            // skip align_bytes
+            file.seekg(file.tellg() + std::streampos(align_bytes), file.beg);
+        }
+
+        // rotate bitmap
+        for(int i = 0; i < this->bitmap_header.img_height; i++) {
+            for(int j = 0; j < this->bitmap_header.img_width; j++) {
+
+            }
+        }
     }
 
     return success;
@@ -115,6 +185,11 @@ bool Bitmap::read(const char *fname)
 {
     this->fname = std::string(fname);
     return this->read();
+}
+
+void Bitmap::print()
+{
+    for(in)
 }
 
 bool Bitmap::hasErrors()
