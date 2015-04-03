@@ -7,8 +7,8 @@ bool Bitmap::swapRows(unsigned int num1, unsigned int num2)
         return false;
     }
 
-    if(num1 > this->bitmap_header.img_height ||
-       num2 > this->bitmap_header.img_height) {
+    if(num1 >= this->bitmap_header.img_height ||
+       num2 >= this->bitmap_header.img_height) {
         this->errors.push_back("wrong index");
         return false;
     }
@@ -17,7 +17,11 @@ bool Bitmap::swapRows(unsigned int num1, unsigned int num2)
         return true;
     }
 
-
+    for(int i = 0; i < this->bitmap_header.img_width; i++) {
+        RGB tmp = this->bitmap[num1][i];
+        this->bitmap[num1][i] = this->bitmap[num2][i];
+        this->bitmap[num2][i] = tmp;
+    }
 
     return true;
 }
@@ -26,6 +30,8 @@ Bitmap::Bitmap()
 {
     this->bitmap = NULL;
     this->fsize = 0;
+    this->width = 0;
+    this->height = 0;
 }
 
 Bitmap::Bitmap(char const *fname)
@@ -33,6 +39,8 @@ Bitmap::Bitmap(char const *fname)
     this->fname = std::string(fname);
     this->bitmap = NULL;
     this->fsize = 0;
+    this->width = 0;
+    this->height = 0;
 }
 
 Bitmap::~Bitmap()
@@ -122,29 +130,28 @@ bool Bitmap::read()
 
     // if verification is done read the bitmap
     if(success) {
-        //debug(this->bitmap_header.img_width);
-        //debug(this->bitmap_header.img_width % 4);
-        unsigned int align_bytes = this->bitmap_header.img_width % 4;
-        unsigned int bitmap_size = this->bitmap_header.img_width *
-                                   this->bitmap_header.img_height;
+        this->width = this->bitmap_header.img_width;
+        this->height = this->bitmap_header.img_height;
+        unsigned int align_bytes = this->width % 4;
+        unsigned int bitmap_size = this->width * this->height;
 
         // allocate memory fo bitmap
         try {
             // allocate rows
-            this->bitmap = new RGB* [this->bitmap_header.img_height];
-            for(int i = 0; i < this->bitmap_header.img_height; i++) {
+            this->bitmap = new RGB* [this->height];
+            for(int i = 0; i < this->height; i++) {
                 this->bitmap[i] = NULL;
             }
 
             // allocate columns
-            for(int i = 0; i <this->bitmap_header.img_height; i++) {
-                this->bitmap[i] = new RGB[this->bitmap_header.img_width];
+            for(int i = 0; i <this->height; i++) {
+                this->bitmap[i] = new RGB[this->width];
             }
         }
         catch(std::bad_alloc &e) {
             // allocation fails, free memory
 
-            for(int i = 0; i < this->bitmap_header.img_height; i++) {
+            for(int i = 0; i < this->height; i++) {
                 delete [] this->bitmap[i];
                 this->bitmap[i] = NULL;
             }
@@ -159,10 +166,9 @@ bool Bitmap::read()
         }
 
         // read bitmap from file
-        for(int i = 0; i < this->bitmap_header.img_height; i++) {
+        for(int i = 0; i < this->height; i++) {
             // read each row
-            unsigned int file_pos = file.tellg();
-            for(int j = 0; j < this->bitmap_header.img_width; j++) {
+            for(int j = 0; j < this->width; j++) {
                 // read pixel of current row
                 file.read((char *)&this->bitmap[i][j], sizeof(RGB));
             }
@@ -171,10 +177,8 @@ bool Bitmap::read()
         }
 
         // rotate bitmap
-        for(int i = 0; i < this->bitmap_header.img_height; i++) {
-            for(int j = 0; j < this->bitmap_header.img_width; j++) {
-
-            }
+        for(unsigned int i = 0; i < this->height / 2; i++) {
+            this->swapRows(i, this->height-1 - i);
         }
     }
 
@@ -189,7 +193,17 @@ bool Bitmap::read(const char *fname)
 
 void Bitmap::print()
 {
-    for(in)
+    for(int i = 0; i < this->height; i++) {
+        for(int j = 0; j < this->width; j++) {
+            RGB px = this->bitmap[i][j];
+            if(px.blue && px.green && px.red) {
+                std::cout << " ";
+            } else {
+                std::cout << "█";
+            }
+        }
+        std::cout << std::endl;
+    }
 }
 
 bool Bitmap::hasErrors()

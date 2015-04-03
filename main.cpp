@@ -16,6 +16,7 @@ int main(int argc, char **argv)
         }
     } else {
         cout << "OK" << endl;
+        bm.print();
     }
 
 	return 0;

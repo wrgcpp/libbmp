@@ -32,6 +32,10 @@ class Bitmap {
     // file size
     unsigned int fsize;
 
+    // image sizes
+    unsigned int height;
+    unsigned int width;
+
     // errors list
     std::list<BMPError> errors;
 
