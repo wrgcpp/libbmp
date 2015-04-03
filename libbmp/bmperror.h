@@ -12,6 +12,10 @@ public:
     BMPError();
     BMPError(const char *msg, const char *desc = NULL);
     BMPError(const std::string &msg, const std::string &desc = std::string());
+    void setText(const char *msg);
+    void setText(const std::string &msg);
+    void setDescription(const char *desc);
+    void setDescription(const std::string &desc);
     std::string text();
     std::string description();
 };
