@@ -16,7 +16,8 @@ int main(int argc, char **argv)
         }
     } else {
         cout << "OK" << endl;
-        bm.print();
+        //bm.print();
+        bm.write("test2.bmp");
     }
 
 	return 0;

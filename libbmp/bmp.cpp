@@ -206,6 +206,62 @@ bool Bitmap::read(const char *fname)
     return this->read();
 }
 
+bool Bitmap::write()
+{
+    if(!this->fname.length()) {
+        this->errors.push_back(BMPError("no file name specified"));
+        return false;
+    }
+
+    // open file
+    std::ofstream file;
+    file.open(fname, std::ios::binary);
+    if(!file.is_open()) {
+        this->errors.push_back(BMPError("error opening file"));
+        return false;
+    }
+
+    // calculate file size
+    unsigned int align_bytes = this->width % 4;
+    this->file_header.size = (this->width * sizeof(RGB) + align_bytes) * this->height;
+
+    // write file header
+    file.write((char *)&this->file_header, sizeof(this->file_header));
+    if(!file.good()) {
+        BMPError e("error writing file \"" + fname + "\"");
+        this->errors.push_back(e);
+        return false;
+    }
+
+    // write bmp header
+    file.write((char *)&this->bitmap_header, sizeof(this->bitmap_header));
+    if(!file.good()) {
+        BMPError e("error writing file \"" + fname + "\"");
+        this->errors.push_back(e);
+        return false;
+    }
+
+    // write rotated bitmap to file
+    for(int i = this->height - 1; i >= 0; i--) {
+        for(int j = 0; j < this->width; j++) {
+            file.write((char *)&this->bitmap[i][j], sizeof(RGB));
+        }
+        // write align bytes to file
+        char zero_byte = 0;
+        for(int j = 0; j < align_bytes; j++) {
+            file.write((char *)&zero_byte, sizeof(char));
+        }
+    }
+
+    return true;
+}
+
+bool Bitmap::write(const char *fname)
+{
+    this->fname = std::string(fname);
+    return this->write();
+}
+
 void Bitmap::print()
 {
     for(int i = 0; i < this->height; i++) {

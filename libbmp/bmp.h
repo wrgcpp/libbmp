@@ -52,6 +52,8 @@ public:
     void setFilename(char const *fname);
     bool read();
     bool read(char const *fname);
+    bool write();
+    bool write(const char *fname);
     void print();
 
     // error handle functions
