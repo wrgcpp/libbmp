@@ -26,6 +26,46 @@ bool Bitmap::swapRows(unsigned int num1, unsigned int num2)
     return true;
 }
 
+bool Bitmap::allocBitmapMem()
+{
+    if(!this->height || !this->width) {
+        // no memory needed for image 0x0px
+        this->errors.push_back("no memory needed for image 0x0");
+        return false;
+    }
+
+    try {
+        // allocate rows
+        this->bitmap = new RGB* [this->height];
+        for(int i = 0; i < this->height; i++) {
+            this->bitmap[i] = NULL;
+        }
+
+        // allocate columns
+        for(int i = 0; i <this->height; i++) {
+            this->bitmap[i] = new RGB[this->width];
+        }
+    }
+    catch(std::bad_alloc &e) {
+        // allocation fails, free memory
+        this->freeBitmapMem();
+        this->errors.push_back("can\'t allocate memory for bitmap");
+        return false;
+    }
+
+    return true;
+}
+
+void Bitmap::freeBitmapMem()
+{
+    for(int i = 0; i < this->height; i++) {
+        delete [] this->bitmap[i];
+        this->bitmap[i] = NULL;
+    }
+    delete [] this->bitmap;
+    this->bitmap = NULL;
+}
+
 Bitmap::Bitmap()
 {
     this->bitmap = NULL;
@@ -45,7 +85,7 @@ Bitmap::Bitmap(char const *fname)
 
 Bitmap::~Bitmap()
 {
-    delete [] this->bitmap;
+    this->freeBitmapMem();
     this->bitmap = NULL;
 }
 
@@ -136,32 +176,7 @@ bool Bitmap::read()
         unsigned int bitmap_size = this->width * this->height;
 
         // allocate memory fo bitmap
-        try {
-            // allocate rows
-            this->bitmap = new RGB* [this->height];
-            for(int i = 0; i < this->height; i++) {
-                this->bitmap[i] = NULL;
-            }
-
-            // allocate columns
-            for(int i = 0; i <this->height; i++) {
-                this->bitmap[i] = new RGB[this->width];
-            }
-        }
-        catch(std::bad_alloc &e) {
-            // allocation fails, free memory
-
-            for(int i = 0; i < this->height; i++) {
-                delete [] this->bitmap[i];
-                this->bitmap[i] = NULL;
-            }
-            delete [] this->bitmap;
-            this->bitmap = NULL;
-
-            BMPError error("can\'t allocate memory for bitmap");
-            error.setDescription("bitmap size is " + std::to_string(bitmap_size) +
-                             " bytes");
-            this->errors.push_back(error);
+        if(!this->allocBitmapMem()) {
             return false;
         }
 
@@ -197,9 +212,9 @@ void Bitmap::print()
         for(int j = 0; j < this->width; j++) {
             RGB px = this->bitmap[i][j];
             if(px.blue && px.green && px.red) {
-                std::cout << " ";
-            } else {
                 std::cout << "█";
+            } else {
+                std::cout << " ";
             }
         }
         std::cout << std::endl;

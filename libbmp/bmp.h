@@ -24,7 +24,6 @@ class Bitmap {
 	FileHeader file_header;
 	BitmapHeader bitmap_header;
     RGB **bitmap;
-    //std::vector<std::vector<RGB> > bitmap;
 
     // file name
     std::string fname;
@@ -40,6 +39,9 @@ class Bitmap {
     std::list<BMPError> errors;
 
     bool swapRows(unsigned int num1, unsigned int num2);
+
+    bool allocBitmapMem();
+    void freeBitmapMem();
 
 public:
 	Bitmap();
