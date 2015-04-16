@@ -10,15 +10,19 @@ int main(int argc, char **argv)
 {
 
     Bitmap bm("test.bmp");
-    if(!bm.read()) {
-        while(bm.hasErrors()) {
-            cout << bm.getLastError().text() << endl;
-        }
-    } else {
-        cout << "OK" << endl;
-        //bm.print();
-        bm.write("test2.bmp");
+    try{
+        bm.read();
     }
+    catch(std::runtime_error e)
+    {
+        cout << "FAIL" << endl;
+        cout << e.what() << endl;
+        return -1;
+    }
+
+    cout << "OK" << endl;
+    bm.print();
+    //bm.write("test2.bmp");
 
 	return 0;
 }

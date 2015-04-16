@@ -31,4 +31,5 @@ struct RGB {
 	uint8_t red;
 } __attribute__((packed));
 
+
 #endif // DEF_H

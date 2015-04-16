@@ -9,9 +9,9 @@
 #include <iomanip>
 #include <list>
 #include <vector>
-#include <exception>
+#include <stdexcept>
 #include "def.h"
-#include "bmperror.h"
+//#include "bmperror.h"
 
 #define debug(s) (std::cout << s << std::endl);
 
@@ -35,13 +35,12 @@ class Bitmap {
     unsigned int height;
     unsigned int width;
 
-    // errors list
-    std::list<BMPError> errors;
-
     bool swapRows(unsigned int num1, unsigned int num2);
 
     bool allocBitmapMem();
     void freeBitmapMem();
+
+    bool isError;
 
 public:
 	Bitmap();
@@ -50,16 +49,15 @@ public:
 
     // handle functions
     void setFilename(char const *fname);
-    bool read();
-    bool read(char const *fname);
-    bool write();
-    bool write(const char *fname);
+    void read();
+    void read(char const *fname);
+    void write();
+    void write(const char *fname);
     void print();
 
     // error handle functions
-    bool hasErrors();
-    BMPError getLastError();
-
+    bool errorOccured();
+    void cleanErrorFlag();
 };
 
 #endif //BMP_H
