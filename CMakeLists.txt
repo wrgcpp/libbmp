@@ -2,13 +2,11 @@ cmake_minimum_required (VERSION 2.8)
 set (PROJECT bmp)
 
 set(SOURCES
-                bmp.cpp
-                bmperror.cpp)
+                bmp.cpp)
 
 set(HEADERS
 		def.h
-                bmp.h
-                bmperror.h)
+                bmp.h)
 
 add_compile_options(-std=c++11)
 
