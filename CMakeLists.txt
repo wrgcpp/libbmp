@@ -10,6 +10,6 @@ set(HEADERS
                 bmp.h
                 bmperror.h)
 
-list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+add_compile_options(-std=c++11)
 
 add_library(${PROJECT} SHARED ${SOURCES} ${HEADERS})
